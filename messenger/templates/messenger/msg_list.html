@@ -1,0 +1,102 @@
+{% extends "messenger/content.html" %}
+{% block msg %}
+
+{% load static %}
+<head>
+    <link rel="stylesheet" href="{% static 'css/messenger.css' %}">
+</head>
+<body>
+<div class="msg_history" id="msg_history">
+    {% for message in messages %}
+    {% if user == message.mfrom %}
+    <!--Исходящие сообщения-->
+    <div class="outgoing_msg">
+      <div class="sent_msg">
+        <p>
+          {% if message.is_audio %}
+            <span class="badge badge-dark">Голосовое сообщение</span>
+            {% for file in message.files.all %}
+              </br> <audio controls > <source src="{{ file.file.url }}"></audio></br>
+            <input id="button-{{ file.id }}" class="btn btn-secondary btn-sm" value="Перевод в текст" type="button" onclick="recog('{{ file.id }}')">
+            <textarea id="audio-{{ file.id }}" type="text" class="form-control" style="resize: none; display: none" readonly></textarea>
+          {% endfor %}
+          {% else %}
+              <a style="white-space: pre-wrap">{{ message.message_text }}</a>
+              {% for file in message.files.all %}
+                {% if file.audiotypecheck %}
+                  </br><a class="badge badge-secondary" target="_blank" rel="noopener noreferrer" href="{{ file.file.url }}"> {{ file.name }} </a>
+                  </br> <audio controls > <source src="{{ file.file.url }}"></audio>
+                {% else %}
+                </br><a class="badge badge-secondary" target="_blank" rel="noopener noreferrer" href="{{ file.file.url }}"> {{ file.name }} </a>
+                <img src="{{ file.file.url }}" onerror="this.style.visibility = 'hidden'">
+                {% endif %}
+              {% endfor %}
+          {% endif %}
+        </p>
+        <span class="time_date">{{ message.time }}</span> </div>
+    </div>
+
+    {% else %}
+    <!--Входящие сообщения-->
+    <div class="incoming_msg">
+      <div class="incoming_msg_img">
+        <img src="{{ message.mfrom.image.url }}">
+      </div>
+      <div class="received_msg">
+        <div class="received_withd_msg">
+          <p>
+              {% if message.is_audio %}
+                <span class="badge badge-dark">Голосовое сообщение</span>
+                {% for file in message.files.all %}
+                  </br> <audio controls > <source src="{{ file.file.url }}"></audio></br>
+                <input id="button-{{ file.id }}" class="btn btn-secondary btn-sm" value="Перевод в текст" type="button" onclick="recog('{{ file.id }}')">
+                <textarea id="audio-{{ file.id }}" type="text" class="form-control" style="resize: none; display: none" readonly></textarea>
+              {% endfor %}
+              {% else %}
+                  <a style="white-space: pre-wrap">{{ message.message_text }}</a>
+                  {% for file in message.files.all %}
+                    {% if file.audiotypecheck %}
+                      </br><a class="badge badge-secondary" target="_blank" rel="noopener noreferrer" href="{{ file.file.url }}"> {{ file.name }} </a>
+                      </br> <audio controls > <source src="{{ file.file.url }}"></audio>
+                    {% else %}
+                    </br><a class="badge badge-secondary" target="_blank" rel="noopener noreferrer" href="{{ file.file.url }}"> {{ file.name }} </a>
+                    <img src="{{ file.file.url }}" onerror="this.style.visibility = 'hidden'">
+                    {% endif %}
+                  {% endfor %}
+              {% endif %}
+          </p>
+          <span class="time_date">{{ message.mfrom.username }} - {{ message.time }}</span></div>
+      </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+    <div id="bottom"></div>
+</div>
+</body>
+<script>
+
+  function recog(audioId)
+    {
+    var fd=new FormData();
+		  fd.append("audio_data", audioId);
+    outp=document.getElementById('button-'.concat(audioId)).style.display="none";
+    outp=document.getElementById('audio-'.concat(audioId))
+    outp.style.display="inline";
+    outp.value='Подождите идет распознавание...';
+
+    let csrftoken = getCookie('csrftoken');
+    let response = fetch("/recognition", {
+        method: "post",
+        body: fd,
+        headers: { "X-CSRFToken": csrftoken },
+    })
+    .then(function(data) {
+        data.text().then( text => {
+            console.log(text);
+            outp.value=text;
+         });
+      })
+   }
+</script>
+
+{% endblock %}

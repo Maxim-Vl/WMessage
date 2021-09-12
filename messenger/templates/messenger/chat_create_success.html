@@ -1,0 +1,11 @@
+{% extends "messenger/base.html" %}
+
+{% block content %}
+    <p>Пользователь сохранен</p>
+
+    <a href="{% url 'messenger:messenger' %}">
+        <button type="button" class="btn btn-outline-secondary"> К списку чатов </button>
+    </a>
+    </br>
+
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "messenger/base.html" %}
+
+{% block content %}
+    <h5> {{ user.username }} </h5>
+    <div class="card" style="width: 18rem;">
+        <img src="{{ user.image.url }}" >
+    </div>
+    </br>
+    <form class="form-horizontal form" action="{% url 'messenger:save_user' user.id %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="input-group">
+          <div class="input-group-append">
+            <span class="input-group-text">Логин</span>
+          </div>
+          <input type="text" class="form-control" id="username" name="username"  value="{{ user.username }}">
+        </div>
+        </br>
+
+        <div class="input-group">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">Имя и фамилия</span>
+          </div>
+          <input type="text" id="first_name" name="first_name"  value="{{ user.first_name }}" class="form-control">
+          <input type="text" id="last_name" name="last_name"  value="{{ user.last_name }}" class="form-control">
+        </div>
+        </br>
+
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text">Изображение</span>
+          </div>
+          <div class="custom-file">
+            <input type="file" accept="image/*" class="custom-file-input" id="inputImage" name="inputImage">
+            <label class="custom-file-label" for="inputImage">Выберите файл</label>
+          </div>
+        </div>
+
+        <div class="control-group">
+            <div class="controls">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+            </div>
+        </div>
+    </form>
+{% endblock %}

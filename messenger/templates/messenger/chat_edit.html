@@ -1,0 +1,104 @@
+{% extends "messenger/base.html" %}
+
+{% block content %}
+    <h5>Редактировать чат "{{chat.name}}"</h5>
+
+    <a href="{% url 'messenger:show_chat' chat.id %}">
+        <button type="button" class="btn btn-outline-secondary"> Вернуться </button>
+    </a></br></br>
+    <form class="form-horizontal form" method="post" action="{% url 'messenger:edit_chat_save' chat.id %}">
+        {% csrf_token %}
+
+        <div class="input-group">
+          <div class="input-group-append">
+            <span class="input-group-text">Название</span>
+          </div>
+          <input type="text" class="form-control" id="chatname" name="chatname" value="{{ chat.name }}">
+        </div>
+        </br>
+
+        <div class="input-group">
+          <div class="input-group-append">
+            <span class="input-group-text">Тип чата</span>
+          </div>
+          <select class="form-control" id="chattype" name="chattype" >
+              {% for type in chat_types %}
+                {% if type == chat.chat_type %}
+                    <option selected="selected"> {{ type }}</option>
+                {% else %}
+                    <option> {{ type }}</option>
+                {% endif %}
+              {% endfor %}
+          </select>
+        </div>
+        </br>
+
+        <div class="input-group">
+          <div class="input-group-append">
+            <span class="input-group-text">Описание</span>
+          </div>
+          <textarea class="form-control" id="chatdescription" name="chatdescription" rows="2">{{ chat.description }}</textarea>
+        </div>
+        </br>
+
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <div class="input-group-text">
+              <input type="checkbox" id="openCheck" name="openCheck" {% if chat.is_open %} checked {% endif %}>
+            </div>
+          </div>
+          <input type="text" class="form-control" value="Открытый" readonly >
+        </div>
+
+        <table class="table table-striped">
+            <tr>
+                <td>Права модератора</td>
+                <td>Логин</td>
+                <td>Имя Фамилия</td>
+            </tr>
+        {% for cuser in chat.users.all %}
+                <tr>
+                <td> <label class="table-label">
+                        <input type="checkbox" class="table-checkbox" name="selected_users" id="choice{{ forloop.counter }}" value="{{ cuser.id }}" {% if cuser.is_moderator %}checked{% endif %}>
+                    </label>
+                </td>
+                    <td> {{ cuser.user.username }} </td>
+                    <td> {{ cuser.user.first_name }} {{ cuser.user.last_name }} </td>
+                    <td><a href="{% url 'messenger:remove_user' cuser.chat.id cuser.user.id %}"><span class="badge badge-danger" >-</span></a></td>
+                </tr>
+        {% endfor %}
+        </table>
+
+
+        <div class="control-group">
+            <div class="controls">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+            </div>
+        </div>
+    </form>
+
+    </br>
+
+    <a href="{% url 'messenger:chat_delete' chat.id %}">
+        <button type="button" class="btn btn-danger">Удалить чат</button>
+    </a>
+    </br>
+    <form class="form-horizontal form" method="post" action="{% url 'messenger:add_chatUser' chat.id %}">
+        {% csrf_token %}
+        <div class="input-group mb-3">
+          <select multiple class="selectpicker" data-live-search="true" data-actions-box="true" title="Добавить пользователя" id="addChatUsers" name="addChatUsers">
+               {% for cuser in users %}
+                  {% if not cuser in chat_users %}
+                    <option>
+                      <a>{{ cuser }}</a>
+
+                    </option>
+                  {% endif %}
+                {% endfor %}
+          </select>
+          <div class="input-group-append">
+            <button type="submit" class="btn btn-outline-success btn-sm">+</button>
+          </div>
+        </div>
+    </form>
+{% endblock %}

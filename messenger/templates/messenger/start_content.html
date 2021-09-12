@@ -1,0 +1,22 @@
+{% extends "messenger/base.html" %}
+{% block content %}
+
+{% load static %}
+<head>
+    <link rel="stylesheet" href="{% static 'css/messenger.css' %}">
+</head>
+<body>
+    <h5>Список чатов</h5>
+    <div class="list-group" style="height: calc(100vh - 100px); overflow-y: auto;">
+        {% for chat in chats %}
+            <a href="{% url 'messenger:show_chat' chat.id %}" class="list-group-item list-group-item-action flex-column align-items-start">
+                <div class="d-flex w-100 justify-content-between">
+                  <h5 class="mb-1">{{ chat.name }}</h5>
+                </div>
+                <p class="mb-1">{{ chat.description }}</p>
+            </a>
+        {% endfor %}
+</div>
+</body>
+
+{% endblock %}

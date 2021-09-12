@@ -1,0 +1,196 @@
+{% extends "messenger/base.html" %}
+{% block content %}
+
+{% load static %}
+<head>
+    <link rel="stylesheet" href="{% static 'css/messenger.css' %}">
+</head>
+<body>
+  <!--Шапка чата-->
+  <div class="border-bottom">
+    <h5>
+      {{ cchat.name }}
+      {% if cchat.is_open %}
+       <span class="badge badge-info">Открытый</span>
+      {% endif %}
+    </h5>
+    <!--Элементы управления чатом-->
+    {% if user.is_authenticated and user in moderators or user.is_staff %}
+      <div class="row">
+        <div class="col-auto">
+          <a class="btn btn-outline-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Пользователи чата
+          </a>
+          <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+            {% for chat_user in chat_users %}
+            {% if not chat_user == user %}
+              <a href="{% url 'messenger:remove_user' cchat.id chat_user.id %}"><span class="badge badge-danger" >-</span></a>
+            {% endif %}
+            <a>
+              {{ chat_user }}
+              </br>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="col-auto">
+          <form class="form-horizontal form" method="post" action="{% url 'messenger:add_chatUser' cchat.id %}">
+            {% csrf_token %}
+            <div class="input-group mb-3">
+              <select multiple class="selectpicker" data-live-search="true" data-actions-box="true" title="Добавить пользователя" id="addChatUsers" name="addChatUsers">
+                   {% for cuser in users %}
+                      {% if not cuser in chat_users %}
+                        <option>
+                          <a>{{ cuser }}</a>
+
+                        </option>
+                      {% endif %}
+                    {% endfor %}
+              </select>
+              <div class="input-group-append">
+                <button type="submit" class="btn btn-outline-success btn-sm">+</button>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="col-auto">
+          <a href="{% url 'messenger:edit_chat' cchat.id %}"><button  class="btn btn-outline-secondary"><img src="{% static 'icons/gear.svg' %}"> </button></a>
+        </div>
+      </div>
+
+    {% else %}
+      <div class="row">
+        <div class="col-auto">
+          <div class="input-group mb-3">
+            <a class="btn btn-outline-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Пользователи чата
+            </a>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuLink2">
+              {% for chat_user in chat_users %}
+              <a>
+                {{ chat_user }}
+                </br>
+              </a>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!--Список сообщений чата-->
+    {% block msg %} {% endblock %}
+
+  <!--Форма ввода сообщений-->
+  {% if user.is_authenticated and user in chat_users %}
+
+  <div class="message_input" id="message_input">
+    <form action="{% url 'messenger:send_message' %}" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+      <div id="messageInput" class="input-group input-group" style="width:100%;">
+        <div class="input-group-prepend">
+          <button type="button" id="file_input_button" class="btn btn-light" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <img src="{% static 'icons/paperclip.svg' %}">
+          </button>
+          <div class="dropdown-menu">
+            <input type="file" multiple class="form-control-file" id="inputfiles" name="inputfiles">
+          </div>
+        </div>
+        <textarea class="form-control" id="text_input" name="text_input" placeholder="Введите сообщение" style="resize: none;"></textarea>
+        <input name="chat_id" id="chat_id" type="hidden" value="{{ cchat.id }}" />
+
+
+        <div id="controls" class="input-group-prepend">
+           <button type="button" id="recordButton" class="btn btn-light" style="display: none"><img src="{% static 'icons/record-fill.svg' %}"></button>
+           <button type="button" id="pauseButton" class="btn btn-light" style="display: none" disabled>
+             <img id="pauseImage" src="{% static 'icons/pause-fill.svg' %}">
+           </button>
+           <button type="button" id="stopButton" class="btn btn-light" style="display: none" disabled><img src="{% static 'icons/stop-fill.svg' %}"></button>
+        </div>
+
+        <div class="input-group-text" id="recordingsList" name="recordingsList" style="display: none">
+          <audio id="audioShow"></audio>
+        </div>
+
+        <textarea id="audioGuide" class="form-control" style="resize: none; display: none" readonly>Для записи голоса используйте кнопки слева, после подтвердите отправку</textarea>
+        <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
+        <script src="{% static 'js/audioRecorder.js' %}"></script>
+
+        <input name="audio_is_hide" id="audio_is_hide" type="hidden" value="True" />
+
+        <button type="button" id="HideButton" class="btn btn-light"><img id="micImage" src="{% static 'icons/mic-fill.svg' %}"></button>
+
+        <div id="appendButtons" class="input-group-append">
+          <button type="button" id="uploadButton" class="btn btn-light" style="display: none">
+            <img src="{% static 'icons/caret-right-fill.svg' %}">
+          </button>
+        </div>
+        <div class="input-group-append">
+          <button id="submit_button" class="btn btn-light" type="submit"><img src="{% static 'icons/caret-right-fill.svg' %}"></button>
+        </div>
+
+      </div>
+
+    </form>
+  </div>
+  {% endif %}
+
+</body>
+
+<!--Прокрутка до конца истории сообщений-->
+<script>
+  window.onload = function()
+  {
+      document.getElementById('bottom').scrollIntoView(true);
+  }
+
+  $("#text_input").keypress(function (e) {
+      if(e.which == 13 && !e.shiftKey) {
+          $(this).closest("form").submit();
+          e.preventDefault();
+      }
+  });
+</script>
+
+<script>
+  var hideButton = document.getElementById("HideButton");
+  hideButton.addEventListener("click", hideInput);
+
+  function hideInput() {
+    if (document.getElementById("audio_is_hide").value) {
+      document.getElementById("recordButton").style.display="inline";
+      document.getElementById("pauseButton").style.display="inline";
+      document.getElementById("stopButton").style.display="inline";
+      document.getElementById("recordingsList").style.display="inline";
+      document.getElementById("audioGuide").style.display="inline";
+      document.getElementById("uploadButton").style.display="inline";
+
+      document.getElementById("file_input_button").style.display="none";
+      document.getElementById("text_input").style.display="none";
+      document.getElementById("submit_button").style.display="none";
+
+      document.getElementById("micImage").src="/media/icons/pencil-square.svg";
+
+      document.getElementById("audio_is_hide").value="";
+    } else {
+      document.getElementById("recordButton").style.display="none";
+      document.getElementById("pauseButton").style.display="none";
+      document.getElementById("stopButton").style.display="none";
+      document.getElementById("recordingsList").style.display="none";
+      document.getElementById("audioGuide").style.display="none";
+      document.getElementById("uploadButton").style.display="none";
+
+      document.getElementById("file_input_button").style.display="block";
+      document.getElementById("text_input").style.display="block";
+      document.getElementById("submit_button").style.display="block";
+
+      document.getElementById("micImage").src="/media/icons/mic-fill.svg";
+
+      document.getElementById("audio_is_hide").value="1";
+    }
+  }
+</script>
+{% endblock %}
+

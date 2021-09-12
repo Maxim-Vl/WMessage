@@ -1,0 +1,33 @@
+{% extends "messenger/base.html" %}
+{% block content %}
+
+<!--Обработка ошибки входа-->
+{% if form.errors %}
+  <div class="alert alert-danger" role="alert">Ошибка входа. Попробуйте ещё раз</div>
+{% endif %}
+
+<!--Форма авторизации-->
+<form class="form-horizontal form" name="LoginForm"  method="post">
+    {% csrf_token %}
+    {% if next %}
+        <input type="hidden" name="next" value="{{ next }}" />
+    {% endif %}
+    <div class="control-group">
+        <label class="control-label" for="username">Имя пользователя:</label>
+        <div class="controls">
+            <input class="form-control" type="text" id="username" name="username"  placeholder="Введите имя">
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="password">Пароль</label>
+        <div class="controls">
+            <input class="form-control" type="password" name="password" id="password" placeholder="Введите пароль">
+        </div>
+    </div><br>
+    <div class="control-group">
+        <div class="controls">
+            <button type="submit" class="btn btn-primary">Вход</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

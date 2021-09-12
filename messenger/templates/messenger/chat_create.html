@@ -1,0 +1,56 @@
+{% extends "messenger/base.html" %}
+
+{% block content %}
+    <p>Новый чат</p>
+
+    <form class="form-horizontal form" method="post" action="{% url 'messenger:chat_create_success' %}">
+        {% csrf_token %}
+
+        <div class="input-group">
+          <div class="input-group-append">
+            <span class="input-group-text">Название</span>
+          </div>
+          <input type="text" class="form-control" id="chatname" name="chatname">
+        </div>
+        </br>
+
+        <div class="input-group">
+          <div class="input-group-append">
+            <span class="input-group-text">Тип чата</span>
+          </div>
+          <select class="form-control" id="chattype" name="chattype">
+              {% for type in chat_types %}
+              <option> {{ type }}</option>
+              {% endfor %}
+          </select>
+        </div>
+        </br>
+
+        <div class="input-group">
+          <div class="input-group-append">
+            <span class="input-group-text">Описание</span>
+          </div>
+          <textarea class="form-control" id="chatdescription" name="chatdescription" rows="2"></textarea>
+        </div>
+        </br>
+
+        <div class="input-group">
+          <div class="input-group-append">
+            <span class="input-group-text">Участники</span>
+          </div>
+          <select multiple class="selectpicker" data-live-search="true" id="users" name="users">
+              {% for user in users %}
+                <option> {{ user }}</option>
+              {% endfor %}
+          </select>
+        </div>
+        </br>
+
+        <div class="control-group">
+            <div class="controls">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+            </div>
+        </div>
+    </form>
+
+{% endblock %}
